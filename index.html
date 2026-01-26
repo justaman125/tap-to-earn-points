@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tap-to-Earn Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+      margin-top: 50px;
+    }
+    #tapButton {
+      padding: 20px 40px;
+      font-size: 24px;
+      background-color: #ffcc00;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    #points {
+      font-size: 32px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Tap-to-Earn Game</h1>
+  <button id="tapButton">Tap me!</button>
+  <div id="points">Points: 0</div>
+
+  <script>
+    let points = 0;
+    const tapButton = document.getElementById("tapButton");
+    const pointsDisplay = document.getElementById("points");
+
+    tapButton.addEventListener("click", () => {
+      points += 1; // +1 point per tap
+      pointsDisplay.textContent = "Points: " + points;
+
+      // Optional: reward at milestones
+      if (points % 10 === 0) {
+        alert("Nice! You reached " + points + " points!");
+      }
+    });
+  </script>
+
+</body>
+</html>
