@@ -65,32 +65,48 @@
   <script>
   let points = parseInt(localStorage.getItem("points")) || 0;
   let adCooldownEnd = parseInt(localStorage.getItem("adCooldownEnd")) || 0;
+  let lastTapTime = 0;
 
   const cooldownTime = 30; // seconds
+  const minTapInterval = 150; // ms (anti auto-click)
 
   const tapButton = document.getElementById("tapButton");
   const adButton = document.getElementById("adButton");
   const pointsDisplay = document.getElementById("points");
 
-  updatePoints();
+  // Add level display
+  const levelDisplay = document.createElement("div");
+  levelDisplay.style.fontSize = "24px";
+  levelDisplay.style.marginTop = "10px";
+  document.body.insertBefore(levelDisplay, pointsDisplay);
+
+  updateUI();
   checkCooldown();
 
   tapButton.addEventListener("click", () => {
+    const now = Date.now();
+
+    // Anti auto-click
+    if (now - lastTapTime < minTapInterval) {
+      return; // too fast = ignored
+    }
+
+    lastTapTime = now;
+
     points += 1;
     savePoints();
-    updatePoints();
+    updateUI();
   });
 
   adButton.addEventListener("click", () => {
     const now = Date.now();
-
     if (now < adCooldownEnd) return;
 
     alert("Ad finished! +10 points 🎉");
 
     points += 10;
     savePoints();
-    updatePoints();
+    updateUI();
 
     adCooldownEnd = now + cooldownTime * 1000;
     localStorage.setItem("adCooldownEnd", adCooldownEnd);
@@ -98,8 +114,11 @@
     checkCooldown();
   });
 
-  function updatePoints() {
+  function updateUI() {
     pointsDisplay.textContent = "Points: " + points;
+
+    const level = Math.floor(points / 100) + 1;
+    levelDisplay.textContent = "Level: " + level;
   }
 
   function savePoints() {
@@ -130,4 +149,3 @@
     }, 1000);
   }
 </script>
-
