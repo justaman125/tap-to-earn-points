@@ -10,14 +10,20 @@
       background: #f0f0f0;
       margin-top: 50px;
     }
-    #tapButton {
+    button {
       padding: 20px 40px;
-      font-size: 24px;
-      background-color: #ffcc00;
+      font-size: 20px;
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      margin-top: 20px;
+      margin: 10px;
+    }
+    #tapButton {
+      background-color: #ffcc00;
+    }
+    #adButton {
+      background-color: #4CAF50;
+      color: white;
     }
     #points {
       font-size: 32px;
@@ -28,23 +34,34 @@
 <body>
 
   <h1>Tap-to-Earn Game</h1>
-  <button id="tapButton">Tap me!</button>
+
+  <button id="tapButton">Tap (+1)</button>
+  <button id="adButton">Watch Ad (+10)</button>
+
   <div id="points">Points: 0</div>
 
   <script>
     let points = 0;
+
     const tapButton = document.getElementById("tapButton");
+    const adButton = document.getElementById("adButton");
     const pointsDisplay = document.getElementById("points");
 
     tapButton.addEventListener("click", () => {
-      points += 1; // +1 point per tap
-      pointsDisplay.textContent = "Points: " + points;
-
-      // Optional: reward at milestones
-      if (points % 10 === 0) {
-        alert("Nice! You reached " + points + " points!");
-      }
+      points += 1;
+      updatePoints();
     });
+
+    adButton.addEventListener("click", () => {
+      // Simulated ad
+      alert("Ad finished! You earned +10 points 🎉");
+      points += 10;
+      updatePoints();
+    });
+
+    function updatePoints() {
+      pointsDisplay.textContent = "Points: " + points;
+    }
   </script>
 
 </body>
