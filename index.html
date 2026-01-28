@@ -59,41 +59,41 @@
 
   <button id="tapButton">TAP (+1)</button>
   <button id="adButton">Watch Ad (+10)</button>
-
-  <div id="points">Points: 0</div>
-
-  <script>
+<script>
   let points = parseInt(localStorage.getItem("points")) || 0;
   let adCooldownEnd = parseInt(localStorage.getItem("adCooldownEnd")) || 0;
   let lastTapTime = 0;
+  let lastDailyBonus = localStorage.getItem("lastDailyBonus") || "";
 
   const cooldownTime = 30; // seconds
-  const minTapInterval = 150; // ms (anti auto-click)
+  const minTapInterval = 150; // ms
 
   const tapButton = document.getElementById("tapButton");
   const adButton = document.getElementById("adButton");
   const pointsDisplay = document.getElementById("points");
 
-  // Add level display
   const levelDisplay = document.createElement("div");
   levelDisplay.style.fontSize = "24px";
-  levelDisplay.style.marginTop = "10px";
   document.body.insertBefore(levelDisplay, pointsDisplay);
+
+  const dailyButton = document.createElement("button");
+  dailyButton.textContent = "Daily Bonus (+50)";
+  dailyButton.style.background = "#2196F3";
+  dailyButton.style.color = "white";
+  dailyButton.style.marginTop = "15px";
+  document.body.insertBefore(dailyButton, pointsDisplay);
 
   updateUI();
   checkCooldown();
+  checkDailyBonus();
 
   tapButton.addEventListener("click", () => {
     const now = Date.now();
-
-    // Anti auto-click
-    if (now - lastTapTime < minTapInterval) {
-      return; // too fast = ignored
-    }
-
+    if (now - lastTapTime < minTapInterval) return;
     lastTapTime = now;
 
-    points += 1;
+    const level = getLevel();
+    points += level; // LEVEL AFFECTS REWARD
     savePoints();
     updateUI();
   });
@@ -102,6 +102,7 @@
     const now = Date.now();
     if (now < adCooldownEnd) return;
 
+    // 🔥 REAL ADS WILL GO HERE LATER
     alert("Ad finished! +10 points 🎉");
 
     points += 10;
@@ -110,15 +111,28 @@
 
     adCooldownEnd = now + cooldownTime * 1000;
     localStorage.setItem("adCooldownEnd", adCooldownEnd);
-
     checkCooldown();
   });
 
+  dailyButton.addEventListener("click", () => {
+    const today = new Date().toDateString();
+    if (lastDailyBonus === today) return;
+
+    points += 50;
+    lastDailyBonus = today;
+    localStorage.setItem("lastDailyBonus", today);
+    savePoints();
+    updateUI();
+    checkDailyBonus();
+  });
+
+  function getLevel() {
+    return Math.floor(points / 100) + 1;
+  }
+
   function updateUI() {
     pointsDisplay.textContent = "Points: " + points;
-
-    const level = Math.floor(points / 100) + 1;
-    levelDisplay.textContent = "Level: " + level;
+    levelDisplay.textContent = "Level: " + getLevel();
   }
 
   function savePoints() {
@@ -126,26 +140,34 @@
   }
 
   function checkCooldown() {
-    const now = Date.now();
-
-    if (now >= adCooldownEnd) {
+    if (Date.now() >= adCooldownEnd) {
       adButton.disabled = false;
       adButton.textContent = "Watch Ad (+10)";
       return;
     }
 
     adButton.disabled = true;
-
-    const interval = setInterval(() => {
-      const timeLeft = Math.ceil((adCooldownEnd - Date.now()) / 1000);
-
-      if (timeLeft <= 0) {
-        clearInterval(interval);
+    const timer = setInterval(() => {
+      const left = Math.ceil((adCooldownEnd - Date.now()) / 1000);
+      if (left <= 0) {
+        clearInterval(timer);
         adButton.disabled = false;
         adButton.textContent = "Watch Ad (+10)";
       } else {
-        adButton.textContent = `Wait ${timeLeft}s`;
+        adButton.textContent = `Wait ${left}s`;
       }
     }, 1000);
   }
+
+  function checkDailyBonus() {
+    const today = new Date().toDateString();
+    if (lastDailyBonus === today) {
+      dailyButton.disabled = true;
+      dailyButton.textContent = "Daily Bonus (claimed)";
+    }
+  }
 </script>
+
+  <div id="points">Points: 0</div>
+
+  
