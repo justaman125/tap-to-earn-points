@@ -63,54 +63,71 @@
   <div id="points">Points: 0</div>
 
   <script>
-    let points = 0;
-    let adCooldown = false;
-    let cooldownTime = 30;
+  let points = parseInt(localStorage.getItem("points")) || 0;
+  let adCooldownEnd = parseInt(localStorage.getItem("adCooldownEnd")) || 0;
 
-    const tapButton = document.getElementById("tapButton");
-    const adButton = document.getElementById("adButton");
-    const pointsDisplay = document.getElementById("points");
+  const cooldownTime = 30; // seconds
 
-    tapButton.addEventListener("click", () => {
-      points += 1;
-      updatePoints();
-    });
+  const tapButton = document.getElementById("tapButton");
+  const adButton = document.getElementById("adButton");
+  const pointsDisplay = document.getElementById("points");
 
-    adButton.addEventListener("click", () => {
-      if (adCooldown) return;
+  updatePoints();
+  checkCooldown();
 
-      // Simulated ad
-      alert("Ad finished! +10 points 🎉");
+  tapButton.addEventListener("click", () => {
+    points += 1;
+    savePoints();
+    updatePoints();
+  });
 
-      points += 10;
-      updatePoints();
+  adButton.addEventListener("click", () => {
+    const now = Date.now();
 
-      startCooldown();
-    });
+    if (now < adCooldownEnd) return;
 
-    function updatePoints() {
-      pointsDisplay.textContent = "Points: " + points;
+    alert("Ad finished! +10 points 🎉");
+
+    points += 10;
+    savePoints();
+    updatePoints();
+
+    adCooldownEnd = now + cooldownTime * 1000;
+    localStorage.setItem("adCooldownEnd", adCooldownEnd);
+
+    checkCooldown();
+  });
+
+  function updatePoints() {
+    pointsDisplay.textContent = "Points: " + points;
+  }
+
+  function savePoints() {
+    localStorage.setItem("points", points);
+  }
+
+  function checkCooldown() {
+    const now = Date.now();
+
+    if (now >= adCooldownEnd) {
+      adButton.disabled = false;
+      adButton.textContent = "Watch Ad (+10)";
+      return;
     }
 
-    function startCooldown() {
-      adCooldown = true;
-      let timeLeft = cooldownTime;
-      adButton.disabled = true;
-      adButton.textContent = `Wait ${timeLeft}s`;
+    adButton.disabled = true;
 
-      const timer = setInterval(() => {
-        timeLeft--;
+    const interval = setInterval(() => {
+      const timeLeft = Math.ceil((adCooldownEnd - Date.now()) / 1000);
+
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        adButton.disabled = false;
+        adButton.textContent = "Watch Ad (+10)";
+      } else {
         adButton.textContent = `Wait ${timeLeft}s`;
+      }
+    }, 1000);
+  }
+</script>
 
-        if (timeLeft <= 0) {
-          clearInterval(timer);
-          adCooldown = false;
-          adButton.disabled = false;
-          adButton.textContent = "Watch Ad (+10)";
-        }
-      }, 1000);
-    }
-  </script>
-
-</body>
-</html>
