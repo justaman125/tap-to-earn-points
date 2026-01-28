@@ -2,29 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+
+  <!-- Mobile friendly -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
   <title>Tap-to-Earn Game</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       background: #f0f0f0;
-      margin-top: 50px;
+      margin: 0;
+      padding-top: 40px;
+      touch-action: manipulation; /* disables zoom on tap */
     }
+
+    h1 {
+      font-size: 28px;
+    }
+
     button {
-      padding: 20px 40px;
-      font-size: 20px;
+      width: 80%;
+      max-width: 300px;
+      padding: 25px;
+      font-size: 22px;
       border: none;
-      border-radius: 12px;
+      border-radius: 16px;
       cursor: pointer;
-      margin: 10px;
+      margin: 15px auto;
+      display: block;
     }
+
     #tapButton {
       background-color: #ffcc00;
     }
+
     #adButton {
       background-color: #4CAF50;
       color: white;
     }
+
+    #adButton:disabled {
+      background-color: #999;
+    }
+
     #points {
       font-size: 32px;
       margin-top: 20px;
@@ -33,15 +55,17 @@
 </head>
 <body>
 
-  <h1>Tap-to-Earn Game</h1>
+  <h1>Tap-to-Earn</h1>
 
-  <button id="tapButton">Tap (+1)</button>
+  <button id="tapButton">TAP (+1)</button>
   <button id="adButton">Watch Ad (+10)</button>
 
   <div id="points">Points: 0</div>
 
   <script>
     let points = 0;
+    let adCooldown = false;
+    let cooldownTime = 30;
 
     const tapButton = document.getElementById("tapButton");
     const adButton = document.getElementById("adButton");
@@ -53,14 +77,38 @@
     });
 
     adButton.addEventListener("click", () => {
+      if (adCooldown) return;
+
       // Simulated ad
-      alert("Ad finished! You earned +10 points 🎉");
+      alert("Ad finished! +10 points 🎉");
+
       points += 10;
       updatePoints();
+
+      startCooldown();
     });
 
     function updatePoints() {
       pointsDisplay.textContent = "Points: " + points;
+    }
+
+    function startCooldown() {
+      adCooldown = true;
+      let timeLeft = cooldownTime;
+      adButton.disabled = true;
+      adButton.textContent = `Wait ${timeLeft}s`;
+
+      const timer = setInterval(() => {
+        timeLeft--;
+        adButton.textContent = `Wait ${timeLeft}s`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          adCooldown = false;
+          adButton.disabled = false;
+          adButton.textContent = "Watch Ad (+10)";
+        }
+      }, 1000);
     }
   </script>
 
