@@ -60,113 +60,57 @@
   <button id="tapButton">TAP (+1)</button>
   <button id="adButton">Watch Ad (+10)</button>
 
-
+  <div id="points">Points: 0</div>
 
   <script>
-  let points = parseInt(localStorage.getItem("points")) || 0;
-  let adCooldownEnd = parseInt(localStorage.getItem("adCooldownEnd")) || 0;
-  let lastTapTime = 0;
-  let lastDailyBonus = localStorage.getItem("lastDailyBonus") || "";
+    let points = 0;
+    let adCooldown = false;
+    let cooldownTime = 30;
 
-  const cooldownTime = 30; // seconds
-  const minTapInterval = 150; // ms
+    const tapButton = document.getElementById("tapButton");
+    const adButton = document.getElementById("adButton");
+    const pointsDisplay = document.getElementById("points");
 
-  const tapButton = document.getElementById("tapButton");
-  const adButton = document.getElementById("adButton");
-  const pointsDisplay = document.getElementById("points");
+    tapButton.addEventListener("click", () => {
+      points += 1;
+      updatePoints();
+    });
 
-  const levelDisplay = document.createElement("div");
-  levelDisplay.style.fontSize = "24px";
-  document.body.insertBefore(levelDisplay, pointsDisplay);
+    adButton.addEventListener("click", () => {
+      if (adCooldown) return;
 
-  const dailyButton = document.createElement("button");
-  dailyButton.textContent = "Daily Bonus (+50)";
-  dailyButton.style.background = "#2196F3";
-  dailyButton.style.color = "white";
-  dailyButton.style.marginTop = "15px";
-  document.body.insertBefore(dailyButton, pointsDisplay);
+      // Simulated ad
+      alert("Ad finished! +10 points 🎉");
 
-  updateUI();
-  checkCooldown();
-  checkDailyBonus();
+      points += 10;
+      updatePoints();
 
-  tapButton.addEventListener("click", () => {
-    const now = Date.now();
-    if (now - lastTapTime < minTapInterval) return;
-    lastTapTime = now;
+      startCooldown();
+    });
 
-    const level = getLevel();
-    points += level; // LEVEL AFFECTS REWARD
-    savePoints();
-    updateUI();
-  });
-
-  adButton.addEventListener("click", () => {
-    const now = Date.now();
-    if (now < adCooldownEnd) return;
-
-    // 🔥 REAL ADS WILL GO HERE LATER
-    alert("Ad finished! +10 points 🎉");
-
-    points += 10;
-    savePoints();
-    updateUI();
-
-    adCooldownEnd = now + cooldownTime * 1000;
-    localStorage.setItem("adCooldownEnd", adCooldownEnd);
-    checkCooldown();
-  });
-
-  dailyButton.addEventListener("click", () => {
-    const today = new Date().toDateString();
-    if (lastDailyBonus === today) return;
-
-    points += 50;
-    lastDailyBonus = today;
-    localStorage.setItem("lastDailyBonus", today);
-    savePoints();
-    updateUI();
-    checkDailyBonus();
-  });
-
-  function getLevel() {
-    return Math.floor(points / 100) + 1;
-  }
-
-  function updateUI() {
-    pointsDisplay.textContent = "Points: " + points;
-    levelDisplay.textContent = "Level: " + getLevel();
-  }
-
-  function savePoints() {
-    localStorage.setItem("points", points);
-  }
-
-  function checkCooldown() {
-    if (Date.now() >= adCooldownEnd) {
-      adButton.disabled = false;
-      adButton.textContent = "Watch Ad (+10)";
-      return;
+    function updatePoints() {
+      pointsDisplay.textContent = "Points: " + points;
     }
 
-    adButton.disabled = true;
-    const timer = setInterval(() => {
-      const left = Math.ceil((adCooldownEnd - Date.now()) / 1000);
-      if (left <= 0) {
-        clearInterval(timer);
-        adButton.disabled = false;
-        adButton.textContent = "Watch Ad (+10)";
-      } else {
-        adButton.textContent = `Wait ${left}s`;
-      }
-    }, 1000);
-  }
+    function startCooldown() {
+      adCooldown = true;
+      let timeLeft = cooldownTime;
+      adButton.disabled = true;
+      adButton.textContent = `Wait ${timeLeft}s`;
 
-  function checkDailyBonus() {
-    const today = new Date().toDateString();
-    if (lastDailyBonus === today) {
-      dailyButton.disabled = true;
-      dailyButton.textContent = "Daily Bonus (claimed)";
+      const timer = setInterval(() => {
+        timeLeft--;
+        adButton.textContent = `Wait ${timeLeft}s`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          adCooldown = false;
+          adButton.disabled = false;
+          adButton.textContent = "Watch Ad (+10)";
+        }
+      }, 1000);
     }
-  }
-</script>
+  </script>
+
+</body>
+</html>
