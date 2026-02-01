@@ -2,10 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <!-- Mobile friendly -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
   <title>Tap-to-Earn Game</title>
 
   <style>
@@ -15,12 +12,10 @@
       background: #f0f0f0;
       margin: 0;
       padding-top: 40px;
-      touch-action: manipulation; /* disables zoom on tap */
+      touch-action: manipulation;
     }
 
-    h1 {
-      font-size: 28px;
-    }
+    h1 { font-size: 28px; }
 
     button {
       width: 80%;
@@ -34,142 +29,107 @@
       display: block;
     }
 
-    #tapButton {
-      background-color: #ffcc00;
-    }
+    #tapButton { background-color: #ffcc00; }
+    #adButton { background-color: #4CAF50; color: white; }
+    #adButton:disabled { background-color: #999; }
+    #points { font-size: 32px; margin-top: 20px; }
 
-    #adButton {
-      background-color: #4CAF50;
-      color: white;
-    }
-
-    #adButton:disabled {
-      background-color: #999;
-    }
-
-    #points {
-      font-size: 32px;
-      margin-top: 20px;
-    }
+    #levelDisplay { font-size: 24px; margin-top: 15px; }
+    #walletButton { background: #ff4b5c; color: white; margin-top: 20px; }
+    #donateButton { background: #2196F3; color: white; margin-top: 10px; }
   </style>
-
-  <meta name="google-adsense-account" content="ca-pub-2272012277115169">
-
 </head>
 <body>
 
   <h1>Tap-to-Earn</h1>
-
   <button id="tapButton">TAP (+1)</button>
-  <button id="adButton">Watch Ad (+10)</button>
-
+  <button id="adButton">Watch Free Ad (+10)</button>
   <div id="points">Points: 0</div>
+  <div id="levelDisplay">Level: 1</div>
+  <button id="walletButton">Withdraw Points (Simulated)</button>
+  <button id="donateButton">Donate / Support</button>
 
   <script>
-  let points = parseInt(localStorage.getItem("points")) || 0;
-  let adCooldownEnd = parseInt(localStorage.getItem("adCooldownEnd")) || 0;
-  let lastTapTime = 0;
-  let lastDailyBonus = localStorage.getItem("lastDailyBonus") || "";
+    let points = parseInt(localStorage.getItem("points")) || 0;
+    let adCooldownEnd = parseInt(localStorage.getItem("adCooldownEnd")) || 0;
+    let lastTapTime = 0;
+    const cooldownTime = 30;
+    const minTapInterval = 150;
 
-  const cooldownTime = 30; // seconds
-  const minTapInterval = 150; // ms
+    const tapButton = document.getElementById("tapButton");
+    const adButton = document.getElementById("adButton");
+    const pointsDisplay = document.getElementById("points");
+    const levelDisplay = document.getElementById("levelDisplay");
+    const walletButton = document.getElementById("walletButton");
+    const donateButton = document.getElementById("donateButton");
 
-  const tapButton = document.getElementById("tapButton");
-  const adButton = document.getElementById("adButton");
-  const pointsDisplay = document.getElementById("points");
+    function getLevel() { return Math.floor(points / 100) + 1; }
 
-  const levelDisplay = document.createElement("div");
-  levelDisplay.style.fontSize = "24px";
-  document.body.insertBefore(levelDisplay, pointsDisplay);
-
-  const dailyButton = document.createElement("button");
-  dailyButton.textContent = "Daily Bonus (+50)";
-  dailyButton.style.background = "#2196F3";
-  dailyButton.style.color = "white";
-  dailyButton.style.marginTop = "15px";
-  document.body.insertBefore(dailyButton, pointsDisplay);
-
-  updateUI();
-  checkCooldown();
-  checkDailyBonus();
-
-  tapButton.addEventListener("click", () => {
-    const now = Date.now();
-    if (now - lastTapTime < minTapInterval) return;
-    lastTapTime = now;
-
-    const level = getLevel();
-    points += level; // LEVEL AFFECTS REWARD
-    savePoints();
-    updateUI();
-  });
-
-  adButton.addEventListener("click", () => {
-    const now = Date.now();
-    if (now < adCooldownEnd) return;
-
-    // 🔥 REAL ADS WILL GO HERE LATER
-    alert("Ad finished! +10 points 🎉");
-
-    points += 10;
-    savePoints();
-    updateUI();
-
-    adCooldownEnd = now + cooldownTime * 1000;
-    localStorage.setItem("adCooldownEnd", adCooldownEnd);
-    checkCooldown();
-  });
-
-  dailyButton.addEventListener("click", () => {
-    const today = new Date().toDateString();
-    if (lastDailyBonus === today) return;
-
-    points += 50;
-    lastDailyBonus = today;
-    localStorage.setItem("lastDailyBonus", today);
-    savePoints();
-    updateUI();
-    checkDailyBonus();
-  });
-
-  function getLevel() {
-    return Math.floor(points / 100) + 1;
-  }
-
-  function updateUI() {
-    pointsDisplay.textContent = "Points: " + points;
-    levelDisplay.textContent = "Level: " + getLevel();
-  }
-
-  function savePoints() {
-    localStorage.setItem("points", points);
-  }
-
-  function checkCooldown() {
-    if (Date.now() >= adCooldownEnd) {
-      adButton.disabled = false;
-      adButton.textContent = "Watch Ad (+10)";
-      return;
+    function updateUI() {
+      pointsDisplay.textContent = "Points: " + points;
+      levelDisplay.textContent = "Level: " + getLevel();
     }
 
-    adButton.disabled = true;
-    const timer = setInterval(() => {
-      const left = Math.ceil((adCooldownEnd - Date.now()) / 1000);
-      if (left <= 0) {
-        clearInterval(timer);
+    function savePoints() { localStorage.setItem("points", points); }
+
+    function checkCooldown() {
+      if (Date.now() >= adCooldownEnd) {
         adButton.disabled = false;
-        adButton.textContent = "Watch Ad (+10)";
-      } else {
-        adButton.textContent = `Wait ${left}s`;
+        adButton.textContent = "Watch Free Ad (+10)";
+        return;
       }
-    }, 1000);
-  }
-
-  function checkDailyBonus() {
-    const today = new Date().toDateString();
-    if (lastDailyBonus === today) {
-      dailyButton.disabled = true;
-      dailyButton.textContent = "Daily Bonus (claimed)";
+      adButton.disabled = true;
+      const timer = setInterval(() => {
+        const left = Math.ceil((adCooldownEnd - Date.now()) / 1000);
+        if (left <= 0) { clearInterval(timer); adButton.disabled = false; adButton.textContent = "Watch Free Ad (+10)"; }
+        else { adButton.textContent = `Wait ${left}s`; }
+      }, 1000);
     }
-  }
-</script>
+
+    tapButton.addEventListener("click", () => {
+      const now = Date.now();
+      if (now - lastTapTime < minTapInterval) return;
+      lastTapTime = now;
+      points += getLevel(); // level affects points
+      savePoints();
+      updateUI();
+    });
+
+    adButton.addEventListener("click", () => {
+      if (Date.now() < adCooldownEnd) return;
+      alert("Simulated ad finished! +10 points 🎉");
+      points += 10;
+      savePoints();
+      updateUI();
+      adCooldownEnd = Date.now() + cooldownTime * 1000;
+      localStorage.setItem("adCooldownEnd", adCooldownEnd);
+      checkCooldown();
+    });
+
+    walletButton.addEventListener("click", () => {
+      if(points <= 0) { alert("No points to withdraw!"); return; }
+      const simulatedCrypto = (points * 0.00001).toFixed(6); // example conversion
+      alert(`Simulated payout: ${simulatedCrypto} SOL to your wallet 🚀`);
+      points = 0;
+      savePoints();
+      updateUI();
+    });
+
+    donateButton.addEventListener("click", () => {
+      window.open("https://ko-fi.com/", "_blank"); // optional, free donations
+    });
+
+    // Anti-auto click simple protection
+    let lastTapCheck = 0;
+    setInterval(() => {
+      if(Date.now() - lastTapCheck > 100) { lastTapCheck = Date.now(); }
+      else { /* do nothing, prevents ultra-fast taps */ }
+    }, 50);
+
+    // Init UI
+    updateUI();
+    checkCooldown();
+  </script>
+
+</body>
+</html>
