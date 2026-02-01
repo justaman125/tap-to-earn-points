@@ -32,11 +32,38 @@
     #tapButton { background-color: #ffcc00; }
     #adButton { background-color: #4CAF50; color: white; }
     #adButton:disabled { background-color: #999; }
-    #points { font-size: 32px; margin-top: 20px; }
 
+    #points { font-size: 32px; margin-top: 20px; }
     #levelDisplay { font-size: 24px; margin-top: 15px; }
     #walletButton { background: #ff4b5c; color: white; margin-top: 20px; }
     #donateButton { background: #2196F3; color: white; margin-top: 10px; }
+
+    /* Modal Styles */
+    #walletModal {
+      display:none;
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(0,0,0,0.7);
+      justify-content:center;
+      align-items:center;
+      z-index: 1000;
+    }
+    #walletModal div {
+      background:white;
+      padding:20px;
+      border-radius:16px;
+      max-width:400px;
+      width:90%;
+    }
+    #walletModal select, #walletModal input, #walletModal button {
+      width:100%;
+      padding:10px;
+      font-size:16px;
+      margin-top:10px;
+    }
   </style>
 </head>
 <body>
@@ -46,8 +73,27 @@
   <button id="adButton">Watch Free Ad (+10)</button>
   <div id="points">Points: 0</div>
   <div id="levelDisplay">Level: 1</div>
-  <button id="walletButton">Withdraw Points (Simulated)</button>
+  <button id="walletButton">Withdraw Points</button>
   <button id="donateButton">Donate / Support</button>
+
+  <!-- Wallet Modal -->
+  <div id="walletModal">
+    <div>
+      <h2>Select Wallet</h2>
+      <select id="walletSelect">
+        <option value="">--Choose Wallet--</option>
+        <option value="Kraken">Kraken</option>
+        <option value="Trust Wallet">Trust Wallet</option>
+        <option value="MetaMask">MetaMask</option>
+        <option value="Phantom">Phantom</option>
+        <option value="Coinbase">Coinbase</option>
+        <!-- Add up to 100 options if you want -->
+      </select>
+      <input id="walletAddress" type="text" placeholder="Enter receiving address">
+      <button id="confirmWithdraw">Confirm</button>
+      <button id="cancelWithdraw" style="background:#ccc;">Cancel</button>
+    </div>
+  </div>
 
   <script>
     let points = parseInt(localStorage.getItem("points")) || 0;
@@ -62,6 +108,12 @@
     const levelDisplay = document.getElementById("levelDisplay");
     const walletButton = document.getElementById("walletButton");
     const donateButton = document.getElementById("donateButton");
+
+    const walletModal = document.getElementById("walletModal");
+    const walletSelect = document.getElementById("walletSelect");
+    const walletAddress = document.getElementById("walletAddress");
+    const confirmWithdraw = document.getElementById("confirmWithdraw");
+    const cancelWithdraw = document.getElementById("cancelWithdraw");
 
     function getLevel() { return Math.floor(points / 100) + 1; }
 
@@ -86,15 +138,17 @@
       }, 1000);
     }
 
+    // Tap button
     tapButton.addEventListener("click", () => {
       const now = Date.now();
       if (now - lastTapTime < minTapInterval) return;
       lastTapTime = now;
-      points += getLevel(); // level affects points
+      points += getLevel();
       savePoints();
       updateUI();
     });
 
+    // Simulated ad button
     adButton.addEventListener("click", () => {
       if (Date.now() < adCooldownEnd) return;
       alert("Simulated ad finished! +10 points 🎉");
@@ -106,27 +160,49 @@
       checkCooldown();
     });
 
+    // Withdraw button
     walletButton.addEventListener("click", () => {
       if(points <= 0) { alert("No points to withdraw!"); return; }
-      const simulatedCrypto = (points * 0.00001).toFixed(6); // example conversion
-      alert(`Simulated payout: ${simulatedCrypto} SOL to your wallet 🚀`);
+      walletModal.style.display = "flex";
+    });
+
+    cancelWithdraw.addEventListener("click", () => {
+      walletModal.style.display = "none";
+      walletSelect.value = "";
+      walletAddress.value = "";
+    });
+
+    confirmWithdraw.addEventListener("click", () => {
+      const selectedWallet = walletSelect.value;
+      const address = walletAddress.value.trim();
+
+      if (!selectedWallet) { alert("Please select a wallet."); return; }
+      if (!address) { alert("Please enter your wallet address."); return; }
+
+      const simulatedCrypto = (points * 0.00001).toFixed(6);
+      alert(`Success! ${simulatedCrypto} SOL will be sent to your ${selectedWallet} address:\n${address} 🚀`);
+
       points = 0;
       savePoints();
       updateUI();
+
+      walletModal.style.display = "none";
+      walletSelect.value = "";
+      walletAddress.value = "";
     });
 
+    // Donate button
     donateButton.addEventListener("click", () => {
-      window.open("https://ko-fi.com/", "_blank"); // optional, free donations
+      window.open("https://ko-fi.com/", "_blank");
     });
 
     // Anti-auto click simple protection
     let lastTapCheck = 0;
     setInterval(() => {
       if(Date.now() - lastTapCheck > 100) { lastTapCheck = Date.now(); }
-      else { /* do nothing, prevents ultra-fast taps */ }
     }, 50);
 
-    // Init UI
+    // Init
     updateUI();
     checkCooldown();
   </script>
